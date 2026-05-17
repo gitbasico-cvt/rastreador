@@ -3,448 +3,517 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenTrack Demo</title>
-    
-    <!-- 1. Importando Tailwind CSS (Estilos) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 2. Importando Ícones (Lucide) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- 3. Importando Gráficos (Chart.js) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Configurações Extras de Estilo e Animação -->
+    <title>Come-Come do Forró - Aracaju 2026</title>
     <style>
-        @keyframes ping-slow {
-            75%, 100% { transform: scale(2); opacity: 0; }
+        /* ==========================================================================
+           ESTILOS DO JOGO (CSS)
+           ========================================================================== */
+        body {
+            background-color: #2c1a04; /* Fundo escuro remetendo à noite de São João */
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
         }
-        .animate-ping-slow {
-            animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+
+        h1 {
+            color: #ff9f43;
+            text-shadow: 3px 3px #ee5253;
+            margin-bottom: 5px;
+            text-align: center;
         }
-        /* Esconder scrollbar mas manter funcionalidade */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+
+        h2 {
+            color: #feca57;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            text-align: center;
         }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+
+        #placar {
+            font-size: 26px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #feca57;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 5px 20px;
+            border-radius: 20px;
+            border: 1px solid #ff9f43;
         }
-        /* Transições suaves para tudo */
-        * { transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+
+        /* Container do Labirinto */
+        #tabuleiro {
+            display: grid;
+            grid-template-columns: repeat(9, 50px);
+            grid-template-rows: repeat(9, 50px);
+            gap: 2px;
+            background-color: #1e1102;
+            padding: 10px;
+            border: 4px solid #ff9f43;
+            border-radius: 10px;
+            box-shadow: 0px 0px 25px rgba(255, 159, 67, 0.6);
+        }
+
+        /* Estilo de cada quadrado/bloco do jogo */
+        .celula {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background-color: #3d2306;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        /* Paredes do labirinto */
+        .parede {
+            background-color: #d63031; /* Barreiras em vermelho festivo */
+            border: 1px solid #ff7675;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* Cantos especiais (Pontos Turísticos ativos) */
+        .ponto-turistico {
+            background-color: #22a6b3 !important;
+            border: 2px solid #7ed6df;
+            font-size: 28px;
+            animation: pulsar 1.5s infinite alternate;
+        }
+
+        @keyframes pulsar {
+            from { transform: scale(0.95); box-shadow: 0 0 5px #7ed6df; }
+            to { transform: scale(1.05); box-shadow: 0 0 15px #22a6b3; }
+        }
+
+        /* Caminho vazio após coletado */
+        .chao-limpo {
+            background-color: #271603;
+        }
+
+        /* ==========================================================================
+           ESTILO DO MODAL (JANELA POP-UP HISTÓRICA E VITÓRIA)
+           ========================================================================== */
+        .modal {
+            display: none; /* Oculto por padrão */
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal-conteudo {
+            background-color: #ffffff;
+            color: #333333;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            text-align: center;
+            border: 6px solid #ff9f43;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .modal-conteudo h2 {
+            color: #ee5253;
+            margin-top: 0;
+            font-size: 28px;
+        }
+
+        .modal-conteudo p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        .modal-conteudo button {
+            background-color: #10ac84;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+
+        .modal-conteudo button:hover {
+            background-color: #0ed29d;
+        }
+
+        /* Estilo específico para o botão de próxima fase */
+        .btn-proxima-fase {
+            background-color: #ff9f43 !important;
+            color: #2c1a04 !important;
+        }
+        .btn-proxima-fase:hover {
+            background-color: #ffb167 !important;
+        }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-slate-200 p-4 font-sans">
+<body>
 
-    <!-- MOCKUP DO CELULAR -->
-    <div class="w-full max-w-sm h-[800px] bg-slate-50 rounded-[3rem] shadow-2xl overflow-hidden border-8 border-slate-900 relative flex flex-col">
-        
-        <!-- ILHA DINÂMICA (NOTCH) -->
-        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-7 bg-slate-900 rounded-b-xl z-50 flex justify-center items-center">
-            <div class="w-16 h-1 bg-slate-800 rounded-full mt-1"></div>
-        </div>
+    <h1>🌽 Sergipe o País do Forró 🌽</h1>
+    <h2>🌽 Come-Come do Forró 🌽</h2>
+    <div id="placar">Pontos: <span id="pontos-valor">0</span></div>
 
-        <!-- ÁREA DE CONTEÚDO -->
-        <div class="flex-1 mt-8 overflow-hidden relative bg-slate-50">
-            
-            <!-- TELA 1: RASTREADOR (TRACKER) -->
-            <div id="screen-tracker" class="flex flex-col h-full p-6 relative transition-opacity duration-300">
-                
-                <!-- Modal de Última Localização (Escondido por padrão) -->
-                <div id="modal-map" class="hidden absolute inset-0 bg-slate-900/90 backdrop-blur-sm z-40 flex-col items-center justify-center p-6 text-center">
-                    <div class="bg-white w-full rounded-3xl p-6 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">
-                        <div class="absolute inset-0 opacity-20 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center"></div>
-                        <div class="relative z-10">
-                            <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i data-lucide="history" class="text-amber-600 w-8 h-8"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-slate-800 mb-1">Última Localização</h3>
-                            <p class="text-sm text-slate-500 mb-6">Registrada há 2 minutos</p>
-                            <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 mb-6">
-                                <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-2">
-                                   <span class="text-xs font-bold text-slate-400 uppercase">Coordenadas</span>
-                                   <span class="text-xs font-mono text-slate-600">-23.5505, -46.6333</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                   <span class="text-xs font-bold text-slate-400 uppercase">Prox. Base</span>
-                                   <span class="text-lg font-black text-slate-800">3.0 metros</span>
-                                </div>
-                            </div>
-                            <button onclick="closeMap()" class="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-colors">
-                                Fechar Mapa
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <!-- Grade do Labirinto -->
+    <div id="tabuleiro"></div>
 
-                <!-- Cabeçalho de Status -->
-                <div class="flex justify-between items-center mb-8">
-                    <div id="status-badge" class="flex items-center gap-2 backdrop-blur-md p-2 rounded-full px-4 border bg-white/10 border-white/20">
-                        <div id="status-dot" class="w-3 h-3 rounded-full shadow-lg bg-emerald-400 animate-pulse"></div>
-                        <span id="status-text" class="text-sm font-semibold text-emerald-700">ESP32 Conectado</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-slate-600">
-                        <i data-lucide="battery" class="text-emerald-600 w-5 h-5"></i>
-                        <span class="text-sm font-bold">91%</span>
-                    </div>
-                </div>
-
-                <!-- Radar Central -->
-                <div class="flex-1 flex flex-col items-center justify-center relative">
-                    <!-- Ondas do Radar -->
-                    <div id="radar-ring-1" class="absolute w-64 h-64 rounded-full border-4 border-emerald-100 transition-colors duration-500"></div>
-                    <div id="radar-ring-2" class="absolute w-48 h-48 rounded-full border-4 border-emerald-200 transition-colors duration-500"></div>
-                    
-                    <!-- Círculo Central -->
-                    <div id="radar-core" class="w-32 h-32 rounded-full flex items-center justify-center shadow-2xl z-10 transition-all duration-500 bg-emerald-500 shadow-emerald-200">
-                        <i id="radar-icon" data-lucide="map-pin" class="text-white w-12 h-12"></i>
-                    </div>
-
-                    <!-- Info Texto -->
-                    <div class="mt-12 text-center space-y-1">
-                        <p class="text-slate-400 text-sm uppercase tracking-wider font-semibold">Distância em Tempo Real</p>
-                        <h1 id="distance-display" class="text-6xl font-black tracking-tighter text-slate-800 transition-colors">
-                            3.2<span class="text-2xl text-slate-400 ml-1">m</span>
-                        </h1>
-                        <p id="uwb-status" class="text-sm font-medium mt-2 text-emerald-600">Sinal Ultra-Wideband: Forte</p>
-                    </div>
-                </div>
-
-                <!-- Botões de Ação -->
-                <div class="mt-auto space-y-3 z-20">
-                    <!-- Alerta de Perda (Escondido por padrão) -->
-                    <div id="alert-banner" class="hidden bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 animate-pulse shadow-sm">
-                        <i data-lucide="bell" class="text-red-500 w-6 h-6"></i>
-                        <div>
-                            <p class="font-bold text-red-800 text-sm">Alerta de Perímetro</p>
-                            <p class="text-xs text-red-600">Objeto saiu do raio de 10m.</p>
-                        </div>
-                    </div>
-                    
-                    <button id="btn-action" onclick="handleMainAction()" class="w-full py-4 rounded-2xl font-bold text-white shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 border border-white/10 bg-slate-900 hover:bg-slate-800">
-                        <i data-lucide="radio" class="w-5 h-5"></i> Emitir Som (Bip)
-                    </button>
-                </div>
+    <!-- Janela de Informações Culturais / Fim de Jogo -->
+    <div id="modal-info" class="modal">
+        <div class="modal-conteudo">
+            <h2 id="modal-titulo">Atração Junina</h2>
+            <p id="modal-texto">História...</p>
+            <div id="modal-footer">
+                <button id="modal-botao" onclick="fecharModal()">Continuar Dançando! 🪗</button>
             </div>
-
-            <!-- TELA 2: DASHBOARD (Escondida por padrão) -->
-            <div id="screen-dashboard" class="hidden flex-col h-full p-6 overflow-y-auto pb-24 no-scrollbar animate-in slide-in-from-right duration-300">
-                <h2 class="text-2xl font-bold text-slate-800 mb-1">Relatórios</h2>
-                <p class="text-slate-400 text-sm mb-6">Análise de telemetria do ESP32</p>
-
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-2 text-emerald-600 mb-2">
-                            <i data-lucide="battery" class="w-4 h-4"></i>
-                            <span class="text-xs font-bold uppercase">Autonomia</span>
-                        </div>
-                        <p class="text-2xl font-bold text-slate-800">28 Dias</p>
-                        <p class="text-xs text-slate-400">Estimativa (Deep Sleep)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-2 text-blue-600 mb-2">
-                            <i data-lucide="shield-check" class="w-4 h-4"></i>
-                            <span class="text-xs font-bold uppercase">Log de Eventos</span>
-                        </div>
-                        <p class="text-2xl font-bold text-slate-800">0 Falhas</p>
-                        <p class="text-xs text-slate-400">Últimos 30 dias</p>
-                    </div>
-                </div>
-
-                <!-- Gráfico 1 -->
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-6">
-                    <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                        <i data-lucide="signal" class="text-blue-500 w-4 h-4"></i> Intensidade (RSSI)
-                    </h3>
-                    <div class="h-40 w-full">
-                        <canvas id="chartSignal"></canvas>
-                    </div>
-                </div>
-
-                <!-- Gráfico 2 -->
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                        <i data-lucide="zap" class="text-emerald-500 w-4 h-4"></i> Consumo
-                    </h3>
-                    <div class="h-40 w-full">
-                        <canvas id="chartBattery"></canvas>
-                    </div>
-                </div>
-            </div>
-
         </div>
-
-        <!-- MENU INFERIOR -->
-        <div class="bg-white border-t border-slate-100 p-4 pb-8 flex justify-around items-center relative z-30">
-            <button onclick="switchTab('tracker')" id="nav-tracker" class="flex flex-col items-center gap-1 text-slate-900">
-                <i data-lucide="radio" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Rastreador</span>
-            </button>
-
-            <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center -mt-10 shadow-xl shadow-slate-900/20 border-4 border-slate-50">
-                 <i data-lucide="smartphone" class="text-white w-6 h-6"></i>
-            </div>
-
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 text-slate-400">
-                <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Relatórios</span>
-            </button>
-        </div>
-
-        <!-- CONTROLE DA DEMO (FLUTUANTE) -->
-        <div class="absolute bottom-24 left-6 right-6 z-50">
-            <button 
-                id="btn-simulate"
-                onclick="toggleConnection()"
-                class="w-full backdrop-blur-md text-xs py-3 rounded-xl border shadow-lg font-mono uppercase tracking-widest font-bold transition-all bg-emerald-500/90 text-white border-emerald-400 hover:bg-emerald-600">
-                ☢️ Simular Perda de Sinal
-            </button>
-        </div>
-
     </div>
 
-    <!-- LÓGICA JAVASCRIPT -->
+    <!-- Elemento de áudio HTML5 invisível -->
+    <audio id="player-forro" loop></audio>
+
     <script>
-        // --- 1. ESTADO GLOBAL ---
-        let isConnected = true;
-        let alarmInterval = null;
-        let distanceInterval = null;
-        let currentDistance = 3.2;
+        /* ==========================================================================
+           LÓGICA DO JOGO (JAVASCRIPT)
+           ========================================================================== */
 
-        // --- 2. FUNÇÕES DE ÁUDIO ---
-        const playBeep = (type = 'alert') => {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
+        // Mapa 9x9: 1 = Parede, M = Milho, 0 = Caminho Vazio
+        const mapa = [
+            ['C1', 'M', 'M', '1', 'M', 'M', 'M', 'M', 'C2'],
+            ['M',  '1', 'M', '1', 'M', '1', '1', 'M', 'M'],
+            ['M',  '1', 'M', 'M', 'M', 'M', '1', 'M', '1'],
+            ['M',  '1', '1', '1', '1', 'M', '1', 'M', '1'],
+            ['M',  'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M'],
+            ['1',  '1', 'M', '1', '1', '1', '1', '1', 'M'],
+            ['1',  'M', 'M', 'M', 'M', 'M', 'M', '1', 'M'],
+            ['M',  'M', '1', '1', 'M', '1', 'M', 'M', 'M'],
+            ['C3', 'M', 'M', 'M', 'M', '1', 'M', 'M', 'C4']
+        ];
 
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            if (type === 'alert') {
-                // Som de Alarme
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(880, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.5, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.5);
-            } else {
-                // Som de Sonar
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, ctx.currentTime);
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
-                osc.start();
-                osc.stop(ctx.currentTime + 1);
+        const infoCantos = {
+            'C1': {
+                titulo: "Forró Caju",
+                texto: "Bem-vindo ao Forró Caju! Tradicional festa na praça de eventos dos mercados centrais, que reúne milhares de pessoas e movimenta o turismo desde a década de 90.",
+                som: "sons/zinho.mp3" 
+            },
+            'C2': {
+                titulo: "Rua de São João",
+                texto: "Você chegou à icônica Rua de São João! O berço dos festejos juninos comunitários de Aracaju, mantendo o autêntico forró e o concurso de quadrilhas desde 1910.",
+                som: "sons/erivaldo.mp3"
+            },
+            'C3': {
+                titulo: "Arraiá do Povo",
+                texto: "Arraiá do Povo, na Orla da Atalaia! Onde o chão ferve com a poeira do autêntico forró pé-de-serra, culinária típica e a vila cenográfica sergipana.",
+                som: "sons/clemilda.mp3"
+            },
+            'C4': {
+                titulo: "Gonzagão",
+                texto: "Complexo Cultural Gonzagão! O grande templo do forró na zona sul de Aracaju, palco histórico de sanfoneiros e grandes campeonatos de quadrilha junina.",
+                som: "sons/sergival.mp3"
             }
         };
 
-        // --- 3. LÓGICA DE UI ---
-        
-        // Iniciar ícones
-        lucide.createIcons();
+        const somVitoria = "sons/vitoria.mp3";
 
-        // Loop de Distância (Simula movimento)
-        function startDistanceLoop() {
-            distanceInterval = setInterval(() => {
-                const change = (Math.random() - 0.5) * 0.2;
-                currentDistance = Math.max(0.5, Math.min(10, currentDistance + change));
-                
-                const distEl = document.getElementById('distance-display');
-                if(isConnected && distEl) {
-                    distEl.innerHTML = `${currentDistance.toFixed(1)}<span class="text-2xl text-slate-400 ml-1">m</span>`;
+        // Estado inicial do jogo
+        let casal = { x: 4, y: 4 };    
+        let inimigo = { x: 0, y: 3 };  
+        let pontos = 0;
+        let jogoPausado = false;
+        let casaSendoVisitada = null;  
+
+        const tabuleiroElemento = document.getElementById('tabuleiro');
+        const playerAudio = document.getElementById('player-forro');
+
+        let audioCtx = null;
+
+        // FUNÇÃO QUE SINTETIZA O TOM RETRO DE MOVIMENTO
+        function tocarTomMovimento() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 }
-            }, 1000);
-        }
-        startDistanceLoop();
-
-        // Trocar Abas (Tracker <-> Dashboard)
-        function switchTab(tab) {
-            const tracker = document.getElementById('screen-tracker');
-            const dashboard = document.getElementById('screen-dashboard');
-            const navTracker = document.getElementById('nav-tracker');
-            const navDash = document.getElementById('nav-dashboard');
-
-            if (tab === 'tracker') {
-                tracker.classList.remove('hidden');
-                dashboard.classList.add('hidden');
-                tracker.classList.add('flex');
-                dashboard.classList.remove('flex');
-                
-                navTracker.classList.replace('text-slate-400', 'text-slate-900');
-                navDash.classList.replace('text-slate-900', 'text-slate-400');
-            } else {
-                tracker.classList.add('hidden');
-                dashboard.classList.remove('hidden');
-                tracker.classList.remove('flex');
-                dashboard.classList.add('flex');
-                
-                navTracker.classList.replace('text-slate-900', 'text-slate-400');
-                navDash.classList.replace('text-slate-400', 'text-slate-900');
-            }
-            lucide.createIcons();
-        }
-
-        // Lógica Principal: Simular Perda/Conexão
-        function toggleConnection() {
-            isConnected = !isConnected;
-            updateUIState();
-
-            const btnSimulate = document.getElementById('btn-simulate');
-
-            if (!isConnected) {
-                // PERDEU SINAL
-                playBeep('alert');
-                alarmInterval = setInterval(() => playBeep('alert'), 2000);
-                
-                btnSimulate.innerText = "🔄 Restaurar Conexão";
-                btnSimulate.className = "w-full backdrop-blur-md text-xs py-3 rounded-xl border shadow-lg font-mono uppercase tracking-widest font-bold transition-all bg-red-500/90 text-white border-red-400 hover:bg-red-600";
-                
-            } else {
-                // RECONECTOU
-                clearInterval(alarmInterval);
-                closeMap(); // Se estiver aberto
-                
-                btnSimulate.innerText = "☢️ Simular Perda de Sinal";
-                btnSimulate.className = "w-full backdrop-blur-md text-xs py-3 rounded-xl border shadow-lg font-mono uppercase tracking-widest font-bold transition-all bg-emerald-500/90 text-white border-emerald-400 hover:bg-emerald-600";
-            }
-        }
-
-        // Atualiza Cores e Textos baseado no estado
-        function updateUIState() {
-            const statusBadge = document.getElementById('status-badge');
-            const statusDot = document.getElementById('status-dot');
-            const statusText = document.getElementById('status-text');
-            const radarRing1 = document.getElementById('radar-ring-1');
-            const radarRing2 = document.getElementById('radar-ring-2');
-            const radarCore = document.getElementById('radar-core');
-            const radarIcon = document.getElementById('radar-icon');
-            const distanceDisplay = document.getElementById('distance-display');
-            const uwbStatus = document.getElementById('uwb-status');
-            const alertBanner = document.getElementById('alert-banner');
-            const btnAction = document.getElementById('btn-action');
-
-            if (isConnected) {
-                // ESTADO VERDE (CONECTADO)
-                statusBadge.className = "flex items-center gap-2 backdrop-blur-md p-2 rounded-full px-4 border bg-white/10 border-white/20";
-                statusDot.className = "w-3 h-3 rounded-full shadow-lg bg-emerald-400 animate-pulse";
-                statusText.innerText = "ESP32 Conectado";
-                statusText.className = "text-sm font-semibold text-emerald-700";
-
-                radarRing1.className = "absolute w-64 h-64 rounded-full border-4 border-emerald-100 transition-colors duration-500";
-                radarRing2.className = "absolute w-48 h-48 rounded-full border-4 border-emerald-200 transition-colors duration-500";
-                
-                radarCore.className = "w-32 h-32 rounded-full flex items-center justify-center shadow-2xl z-10 transition-all duration-500 bg-emerald-500 shadow-emerald-200";
-                // Trocar icone para MapPin via Lucide
-                radarCore.innerHTML = '<i data-lucide="map-pin" class="text-white w-12 h-12"></i>';
-                
-                distanceDisplay.className = "text-6xl font-black tracking-tighter text-slate-800 transition-colors";
-                uwbStatus.innerText = "Sinal Ultra-Wideband: Forte";
-                uwbStatus.className = "text-sm font-medium mt-2 text-emerald-600";
-
-                alertBanner.classList.add('hidden');
-                
-                btnAction.innerHTML = '<i data-lucide="radio" class="w-5 h-5"></i> Emitir Som (Bip)';
-                btnAction.className = "w-full py-4 rounded-2xl font-bold text-white shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 border border-white/10 bg-slate-900 hover:bg-slate-800";
-
-            } else {
-                // ESTADO VERMELHO (PERDIDO)
-                statusBadge.className = "flex items-center gap-2 backdrop-blur-md p-2 rounded-full px-4 border bg-red-100/20 border-red-200";
-                statusDot.className = "w-3 h-3 rounded-full shadow-lg bg-red-600 animate-ping";
-                statusText.innerText = "SINAL PERDIDO";
-                statusText.className = "text-sm font-semibold text-red-600";
-
-                radarRing1.className = "absolute w-64 h-64 rounded-full border-4 border-red-100 animate-ping-slow";
-                radarRing2.className = "absolute w-48 h-48 rounded-full border-4 border-red-200 animate-pulse";
-                
-                radarCore.className = "w-32 h-32 rounded-full flex items-center justify-center shadow-2xl z-10 transition-all duration-500 bg-red-500 shadow-red-300 scale-110";
-                radarCore.innerHTML = '<i data-lucide="alert-triangle" class="text-white w-12 h-12 animate-bounce"></i>';
-
-                distanceDisplay.innerText = "--";
-                distanceDisplay.className = "text-6xl font-black tracking-tighter text-red-500 transition-colors";
-                
-                uwbStatus.innerText = "Buscando sinal do dispositivo...";
-                uwbStatus.className = "text-sm font-bold mt-2 text-red-600 animate-pulse";
-
-                alertBanner.classList.remove('hidden');
-                alertBanner.className = "bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 animate-pulse shadow-sm mb-3";
-
-                btnAction.innerHTML = '<i data-lucide="navigation" class="w-5 h-5"></i> Ver Última Localização';
-                btnAction.className = "w-full py-4 rounded-2xl font-bold text-white shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 border border-white/10 bg-amber-600 hover:bg-amber-700";
-            }
-            lucide.createIcons();
-        }
-
-        // Botão Principal (Sonar ou Mapa)
-        function handleMainAction() {
-            if (isConnected) {
-                playBeep('sonar');
-            } else {
-                document.getElementById('modal-map').classList.remove('hidden');
-                document.getElementById('modal-map').classList.add('flex');
-            }
-        }
-
-        function closeMap() {
-            document.getElementById('modal-map').classList.add('hidden');
-            document.getElementById('modal-map').classList.remove('flex');
-        }
-
-        // --- 4. GRÁFICOS (CHART.JS) ---
-        document.addEventListener("DOMContentLoaded", function() {
-            
-            // Gráfico de Sinal
-            const ctxSignal = document.getElementById('chartSignal').getContext('2d');
-            new Chart(ctxSignal, {
-                type: 'line',
-                data: {
-                    labels: ['10s', '8s', '6s', '4s', '2s', 'Agora'],
-                    datasets: [{
-                        label: 'Força (dBm)',
-                        data: [85, 88, 45, 90, 95, 98],
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { display: false }, y: { display: false } }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
                 }
-            });
 
-            // Gráfico de Bateria
-            const ctxBattery = document.getElementById('chartBattery').getContext('2d');
-            new Chart(ctxBattery, {
-                type: 'line',
-                data: {
-                    labels: ['00h', '04h', '08h', '12h', '16h', '20h', '24h'],
-                    datasets: [{
-                        label: 'Bateria (%)',
-                        data: [98, 97, 95, 94, 92, 91, 90],
-                        borderColor: '#10b981',
-                        backgroundColor: 'transparent',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#10b981',
-                        tension: 0.2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { display: false }, y: { min: 80, max: 100, display: false } }
+                let oscilador = audioCtx.createOscillator();
+                let ganho = audioCtx.createGain();
+
+                oscilador.connect(ganho);
+                ganho.connect(audioCtx.destination);
+
+                oscilador.type = 'square'; 
+                oscilador.frequency.setValueAtTime(440, audioCtx.currentTime); 
+                oscilador.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.12);
+
+                ganho.gain.setValueAtTime(0.45, audioCtx.currentTime); 
+                ganho.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+
+                oscilador.start();
+                oscilador.stop(audioCtx.currentTime + 0.12);
+            } catch (e) {
+                console.log("Aguardando interação para áudio.");
+            }
+        }
+
+        // AJUSTE: FUNÇÃO DE SOM DE ERRO/COLISÃO RETRO
+        function tocarSomColisao() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let oscilador = audioCtx.createOscillator();
+                let ganho = audioCtx.createGain();
+
+                oscilador.connect(ganho);
+                ganho.connect(audioCtx.destination);
+
+                oscilador.type = 'sawtooth'; // Onda dente de serra para som mais áspero de erro
+                oscilador.frequency.setValueAtTime(180, audioCtx.currentTime);
+                oscilador.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+
+                ganho.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                ganho.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+                oscilador.start();
+                oscilador.stop(audioCtx.currentTime + 0.3);
+            } catch(e) {}
+        }
+
+        // FUNÇÃO DE RENDERIZAÇÃO DO TABULEIRO
+        function desenharTabuleiro() {
+            tabuleiroElemento.innerHTML = ''; 
+
+            for (let l = 0; l < 9; l++) {
+                for (let c = 0; c < 9; c++) {
+                    const celula = document.createElement('div');
+                    celula.classList.add('celula');
+
+                    if (casal.x === l && casal.y === c) {
+                        celula.innerHTML = '👩‍❤️‍👨'; 
+                    } 
+                    else if (inimigo.x === l && inimigo.y === c) {
+                        celula.innerHTML = '👻';
+                    } 
+                    else {
+                        let tipo = mapa[l][c];
+                        if (tipo === '1') {
+                            celula.classList.add('parede');
+                        } else if (tipo === 'M') {
+                            celula.innerHTML = '🌽';
+                        } else if (['C1', 'C2', 'C3', 'C4'].includes(tipo)) {
+                            celula.classList.add('ponto-turistico');
+                            celula.innerHTML = '🎪'; 
+                        } else {
+                            celula.classList.add('chao-limpo');
+                        }
+                    }
+                    tabuleiroElemento.appendChild(celula);
                 }
-            });
+            }
+        }
+
+        // MONITORAMENTO DOS MOVIMENTOS DO JOGADOR
+        document.addEventListener('keydown', (e) => {
+            if (jogoPausado) return; 
+
+            let proxX = casal.x;
+            let proxY = casal.y;
+            let moveu = false;
+
+            if (e.key === 'ArrowUp')   { proxX--; moveu = true; }
+            if (e.key === 'ArrowDown') { proxX++; moveu = true; }
+            if (e.key === 'ArrowLeft') { proxY--; moveu = true; }
+            if (e.key === 'ArrowRight'){ proxY++; moveu = true; }
+
+            if (moveu && proxX >= 0 && proxX < 9 && proxY >= 0 && proxY < 9) {
+                if (mapa[proxX][proxY] !== '1') {
+                    casal.x = proxX;
+                    casal.y = proxY;
+                    
+                    tocarTomMovimento();
+                    
+                    // AJUSTE: Primeira checagem (Se o casal andou direto para cima do fantasma)
+                    if (checarColisaoInimigo()) {
+                        desenharTabuleiro();
+                        return; // Para a execução do turno para dar tempo do jogador respirar
+                    }
+
+                    checarEventosTabuleiro();
+                    
+                    if (!jogoPausado) {
+                        moverInimigoAtivo();
+                        // Segunda checagem (Se o fantasma andou para cima do casal)
+                        checarColisaoInimigo();
+                    }
+                    desenharTabuleiro();
+                }
+            }
         });
 
+        // INTELIGÊNCIA ARTIFICIAL DO INIMIGO
+        function moverInimigoAtivo() {
+            let melhorMovimento = { x: inimigo.x, y: inimigo.y };
+            let menorDistancia = Infinity;
+
+            const direcoes = [
+                {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}, {x: 0, y: 1}
+            ];
+
+            direcoes.forEach(dir => {
+                let testeX = inimigo.x + dir.x;
+                let testeY = inimigo.y + dir.y;
+
+                if (testeX >= 0 && testeX < 9 && testeY >= 0 && testeY < 9) {
+                    if (mapa[testeX][testeY] !== '1') {
+                        let dx = testeX - casal.x;
+                        let dy = testeY - casal.y;
+                        let distancia = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distancia < menorDistancia) {
+                            menorDistancia = distancia;
+                            melhorMovimento = { x: testeX, y: testeY };
+                        }
+                    }
+                }
+            });
+
+            inimigo.x = melhorMovimento.x;
+            inimigo.y = melhorMovimento.y;
+        }
+
+        // CHECA COLISÕES DE ELEMENTOS (MILHOS E CASAS)
+        function checarEventosTabuleiro() {
+            let localAtual = mapa[casal.x][casal.y];
+
+            if (localAtual === 'M') {
+                pontos += 10;
+                atualizarPlacar();
+                mapa[casal.x][casal.y] = '0'; 
+            }
+
+            if (['C1', 'C2', 'C3', 'C4'].includes(localAtual)) {
+                jogoPausado = true;
+                casaSendoVisitada = { x: casal.x, y: casal.y, codigo: localAtual };
+
+                pontos = pontos * 2;
+                atualizarPlacar();
+
+                abrirModalCultural(localAtual);
+            }
+        }
+
+        // AJUSTE: VERIFICA SE O INIMIGO ALCANÇOU O CASAL E APLICA PENALIDADE
+        function checarColisaoInimigo() {
+            if (casal.x === inimigo.x && casal.y === inimigo.y) {
+                tocarSomColisao();
+                
+                // Diminui 30% dos pontos de forma proporcional e arredonda para número inteiro
+                let perda = Math.round(pontos * 0.3);
+                pontos = pontos - perda;
+                if (pontos < 0) pontos = 0;
+                
+                atualizarPlacar();
+                alert(`Opa, esbarrou no obstáculo! O casal perdeu o ritmo. Pena de -30% dos pontos (-${perda} pts). Voltando para o início!`);
+                
+                // Reseta as posições para o início seguro
+                casal = { x: 4, y: 4 };
+                inimigo = { x: 0, y: 3 };
+                return true;
+            }
+            return false;
+        }
+
+        // VERIFICA SE O JOGADOR JÁ VISITOU TODOS OS CANTOS DO MAPA
+        function verificarFimDeJogo() {
+            for (let l = 0; l < 9; l++) {
+                for (let c = 0; c < 9; c++) {
+                    if (['C1', 'C2', 'C3', 'C4'].includes(mapa[l][c])) {
+                        return false; 
+                    }
+                }
+            }
+            return true; 
+        }
+
+        function atualizarPlacar() {
+            document.getElementById('pontos-valor').innerText = pontos;
+        }
+
+        function abrirModalCultural(cantoCodigo) {
+            let dados = infoCantos[cantoCodigo];
+
+            document.getElementById('modal-titulo').innerText = dados.titulo;
+            document.getElementById('modal-texto').innerText = dados.texto;
+            
+            const botao = document.getElementById('modal-botao');
+            botao.innerText = "Continuar Dançando! 🪗";
+            botao.className = "";
+            botao.setAttribute("onclick", "fecharModal()");
+
+            document.getElementById('modal-info').style.display = 'flex';
+
+            playerAudio.src = dados.som;
+            playerAudio.play().catch(erro => {
+                console.log("Áudio aguardando clique inicial.");
+            });
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-info').style.display = 'none';
+            playerAudio.pause();
+            playerAudio.currentTime = 0; 
+
+            if (casaSendoVisitada) {
+                mapa[casaSendoVisitada.x][casaSendoVisitada.y] = '0';
+                casaSendoVisitada = null;
+            }
+
+            if (verificarFimDeJogo()) {
+                exibirTelaVitoria();
+            } else {
+                jogoPausado = false;
+                desenharTabuleiro();
+            }
+        }
+
+        function exibirTelaVitoria() {
+            jogoPausado = true;
+            
+            document.getElementById('modal-titulo').innerText = "✨ ¡Viva! Você Zerou Aracaju! ✨";
+            document.getElementById('modal-texto').innerHTML = `Muito obrigado por valorizar a nossa cultura junina!<br><br>Sua pontuação final foi de: <strong>${pontos} pontos</strong>.<br><br>Que tal expandir sua jornada pelo País do Forró? Prepare o tamanco, pois na próxima fase vamos conhecer os tradicionais festejos do interior do estado, começando pelo histórico <strong>Forró de Areia Branca</strong>!`;
+            
+            const botao = document.getElementById('modal-botao');
+            botao.innerText = "Partir para Areia Branca! 🚌";
+            botao.className = "btn-proxima-fase";
+            botao.setAttribute("onclick", "proximaFase()");
+
+            document.getElementById('modal-info').style.display = 'flex';
+
+            playerAudio.src = somVitoria;
+            playerAudio.play().catch(erro => {
+                console.log("Erro ao reproduzir o som de vitória.");
+            });
+        }
+
+        function proximaFase() {
+            playerAudio.pause();
+            playerAudio.currentTime = 0;
+            alert("Carregando o circuito turístico de Areia Branca... Prepare-se para novos desafios e mais forró!");
+            location.reload(); 
+        }
+
+        desenharTabuleiro();
     </script>
 </body>
 </html>
