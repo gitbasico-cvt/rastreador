@@ -18,26 +18,30 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
             user-select: none;
+            -webkit-user-select: none;
         }
 
         h1 {
             color: #ff9f43;
-            text-shadow: 3px 3px #ee5253;
-            margin-bottom: 5px;
+            text-shadow: 2px 2px #ee5253;
+            margin: 5px 0;
+            font-size: 1.8rem;
             text-align: center;
         }
 
         h2 {
             color: #feca57;
             margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-size: 1rem;
             text-align: center;
         }
 
         #placar {
-            font-size: 26px;
+            font-size: 20px;
             margin-bottom: 15px;
             font-weight: bold;
             color: #feca57;
@@ -47,18 +51,24 @@
             border: 1px solid #ff9f43;
         }
 
-        /* Container do Labirinto */
+        /* Container do Labirinto Responsivo */
         #tabuleiro {
             display: grid;
-            grid-template-columns: repeat(9, 50px);
-            grid-template-rows: repeat(9, 50px);
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
             gap: 2px;
             background-color: #1e1102;
-            padding: 10px;
+            padding: 8px;
             border: 4px solid #ff9f43;
             border-radius: 10px;
             box-shadow: 0px 0px 25px rgba(255, 159, 67, 0.6);
-            touch-action: none; /* Impede a tela do celular de rolar ao arrastar o dedo no jogo */
+            touch-action: none; /* Impede o scroll da tela do celular ao jogar */
+            
+            /* Ajuste de tamanho dinâmico para telas pequenas e grandes */
+            width: 90vw;
+            height: 90vw;
+            max-width: 450px;
+            max-height: 450px;
         }
 
         /* Estilo de cada quadrado/bloco do jogo */
@@ -66,15 +76,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 5.5vw; /* Tamanho do emoji baseado na tela */
             background-color: #3d2306;
             border-radius: 4px;
             transition: background-color 0.2s;
         }
 
+        /* Trava o tamanho máximo dos emojis em telas grandes */
+        @media (min-width: 500px) {
+            .celula {
+                font-size: 24px;
+            }
+        }
+
         /* Paredes do labirinto */
         .parede {
-            background-color: #d63031; /* Barreiras em vermelho festivo */
+            background-color: #d63031; 
             border: 1px solid #ff7675;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
@@ -83,7 +100,6 @@
         .ponto-turistico {
             background-color: #22a6b3 !important;
             border: 2px solid #7ed6df;
-            font-size: 28px;
             animation: pulsar 1.5s infinite alternate;
         }
 
@@ -92,30 +108,32 @@
             to { transform: scale(1.05); box-shadow: 0 0 15px #22a6b3; }
         }
 
-        /* Caminho vazio após coletado */
         .chao-limpo {
             background-color: #271603;
         }
 
         /* ==========================================================================
-           ESTILO DO MODAL (JANELA POP-UP HISTÓRICA E VITÓRIA)
+           ESTILO DO MODAL RESPONSIVO
            ========================================================================== */
         .modal {
-            display: none; /* Oculto por padrão */
+            display: none; 
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.85);
             justify-content: center;
             align-items: center;
             z-index: 10;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .modal-conteudo {
             background-color: #ffffff;
             color: #333333;
-            padding: 30px;
+            padding: 20px;
             border-radius: 15px;
-            max-width: 400px;
+            width: 100%;
+            max-width: 380px;
             text-align: center;
             border: 6px solid #ff9f43;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
@@ -124,12 +142,12 @@
         .modal-conteudo h2 {
             color: #ee5253;
             margin-top: 0;
-            font-size: 28px;
+            font-size: 22px;
         }
 
         .modal-conteudo p {
-            font-size: 16px;
-            line-height: 1.6;
+            font-size: 15px;
+            line-height: 1.5;
             color: #444;
         }
 
@@ -138,33 +156,29 @@
             color: white;
             border: none;
             padding: 12px 25px;
-            font-size: 18px;
+            font-size: 16px;
             border-radius: 25px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 15px;
             font-weight: bold;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: background 0.2s;
+            width: 100%;
         }
 
         .modal-conteudo button:hover {
             background-color: #0ed29d;
         }
 
-        /* Estilo específico para o botão de próxima fase */
         .btn-proxima-fase {
             background-color: #ff9f43 !important;
             color: #2c1a04 !important;
-        }
-        .btn-proxima-fase:hover {
-            background-color: #ffb167 !important;
         }
     </style>
 </head>
 <body>
 
-    <h1>🌽 Sergipe o País do Forró 🌽</h1>
-    <h2>🌽 Come-Come do Forró 🌽</h2>
+    <h1> Sergipano o País do Forró </h1>
+    <h2> Come-Come do Forró </h2>
     <div id="placar">Pontos: <span id="pontos-valor">0</span></div>
 
     <!-- Grade do Labirinto -->
@@ -176,12 +190,11 @@
             <h2 id="modal-titulo">Atração Junina</h2>
             <p id="modal-texto">História...</p>
             <div id="modal-footer">
-                <button id="modal-botao" onclick="fecharModal()">Continuar Dançando! 🪗</button>
+                <button id="modal-botao" onclick="fecharModal()">Continuar Dançando! </button>
             </div>
         </div>
     </div>
 
-    <!-- Elemento de áudio HTML5 invisível -->
     <audio id="player-forro" loop></audio>
 
     <script>
@@ -189,7 +202,6 @@
            LÓGICA DO JOGO (JAVASCRIPT)
            ========================================================================== */
 
-        // Mapa 9x9: 1 = Parede, M = Milho, 0 = Caminho Vazio
         const mapa = [
             ['C1', 'M', 'M', '1', 'M', 'M', 'M', 'M', 'C2'],
             ['M',  '1', 'M', '1', 'M', '1', '1', 'M', 'M'],
@@ -227,67 +239,53 @@
 
         const somVitoria = "sons/vitoria.mp3";
 
-        // Estado inicial do jogo
         let casal = { x: 4, y: 4 };    
         let inimigo = { x: 0, y: 3 };  
         let pontos = 0;
         let jogoPausado = false;
         let casaSendoVisitada = null;  
 
-        // CONFIGURAÇÃO DO MOVIMENTO CONTÍNUO
-        let direcaoAtual = null; // Guarda para onde o casal está correndo sozinho
+        // [CONTROLE DE MOVIMENTO] -> Altere VELOCIDADE_JOGO para acelerar/desacelerar o casal
+        let direcaoAtual = null; 
         let loopMovimento = null;
-        const VELOCIDADE_JOGO = 220; // Tempo em milissegundos entre cada passo automático (menor = mais rápido)
+        const VELOCIDADE_JOGO = 220; 
 
         const tabuleiroElemento = document.getElementById('tabuleiro');
         const playerAudio = document.getElementById('player-forro');
-
         let audioCtx = null;
 
-        // FUNÇÃO QUE SINTETIZA O TOM RETRO DE MOVIMENTO
         function tocarTomMovimento() {
             try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
 
                 let oscilador = audioCtx.createOscillator();
                 let ganho = audioCtx.createGain();
-
                 oscilador.connect(ganho);
                 ganho.connect(audioCtx.destination);
 
                 oscilador.type = 'square'; 
                 oscilador.frequency.setValueAtTime(440, audioCtx.currentTime); 
                 oscilador.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.12);
-
                 ganho.gain.setValueAtTime(0.45, audioCtx.currentTime); 
                 ganho.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
 
                 oscilador.start();
                 oscilador.stop(audioCtx.currentTime + 0.12);
-            } catch (e) {
-                console.log("Aguardando interação para áudio.");
-            }
+            } catch (e) {}
         }
 
-        // AJUSTE: FUNÇÃO DE SOM DE ERRO/COLISÃO RETRO
         function tocarSomColisao() {
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 let oscilador = audioCtx.createOscillator();
                 let ganho = audioCtx.createGain();
-
                 oscilador.connect(ganho);
                 ganho.connect(audioCtx.destination);
 
                 oscilador.type = 'sawtooth'; 
                 oscilador.frequency.setValueAtTime(180, audioCtx.currentTime);
                 oscilador.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
-
                 ganho.gain.setValueAtTime(0.5, audioCtx.currentTime);
                 ganho.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
 
@@ -296,10 +294,8 @@
             } catch(e) {}
         }
 
-        // FUNÇÃO DE RENDERIZAÇÃO DO TABULEIRO
         function desenharTabuleiro() {
             tabuleiroElemento.innerHTML = ''; 
-
             for (let l = 0; l < 9; l++) {
                 for (let c = 0; c < 9; c++) {
                     const celula = document.createElement('div');
@@ -313,23 +309,18 @@
                     } 
                     else {
                         let tipo = mapa[l][c];
-                        if (tipo === '1') {
-                            celula.classList.add('parede');
-                        } else if (tipo === 'M') {
-                            celula.innerHTML = '🌽';
-                        } else if (['C1', 'C2', 'C3', 'C4'].includes(tipo)) {
+                        if (tipo === '1') celula.classList.add('parede');
+                        else if (tipo === 'M') celula.innerHTML = '🌽';
+                        else if (['C1', 'C2', 'C3', 'C4'].includes(tipo)) {
                             celula.classList.add('ponto-turistico');
                             celula.innerHTML = '🎪'; 
-                        } else {
-                            celula.classList.add('chao-limpo');
-                        }
+                        } else celula.classList.add('chao-limpo');
                     }
                     tabuleiroElemento.appendChild(celula);
                 }
             }
         }
 
-        // FUNÇÃO CENTRAL QUE EXECUTA UM PASSO DA JORNADA (Usada tanto por clique quanto pelo loop contínuo)
         function executarPasso(direcao) {
             if (jogoPausado) return false;
 
@@ -341,18 +332,15 @@
             if (direcao === 'ArrowLeft') proxY--;
             if (direcao === 'ArrowRight')proxY++;
 
-            // Valida os limites do mapa e se não colide com parede
             if (proxX >= 0 && proxX < 9 && proxY >= 0 && proxY < 9 && mapa[proxX][proxY] !== '1') {
                 casal.x = proxX;
                 casal.y = proxY;
-                
                 tocarTomMovimento();
                 
                 if (checarColisaoInimigo()) {
                     desenharTabuleiro();
                     return false; 
                 }
-
                 checarEventosTabuleiro();
                 
                 if (!jogoPausado) {
@@ -360,36 +348,30 @@
                     checarColisaoInimigo();
                 }
                 desenharTabuleiro();
-                return true; // Retorna true se conseguiu se mover com sucesso
+                return true; 
             }
-            return false; // Retorna false se bateu em parede ou saiu do mapa
+            return false; 
         }
 
-        // LIGA O MOTOR AUTOMÁTICO DE PASSO CONTÍNUO
         function iniciarLoopMovimento() {
             if (loopMovimento) clearInterval(loopMovimento);
-            
             loopMovimento = setInterval(() => {
                 if (direcaoAtual && !jogoPausado) {
                     let moveu = executarPasso(direcaoAtual);
-                    // Se ele bateu numa parede, para de correr sozinho naquela direção
-                    if (!moveu) {
-                        direcaoAtual = null;
-                    }
+                    if (!moveu) direcaoAtual = null; // Para o movimento se bater no muro
                 }
             }, VELOCIDADE_JOGO);
         }
 
-        // MONITORAMENTO DOS MOVIMENTOS DO JOGADOR (DESKTOP)
         document.addEventListener('keydown', (e) => {
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                e.preventDefault(); // Evita a rolagem natural da página nas setas
-                direcaoAtual = e.key; // Atualiza a direção do movimento inercial
+                e.preventDefault(); 
+                direcaoAtual = e.key; 
                 executarPasso(direcaoAtual);
             }
         });
 
-        // ADAPTAÇÃO PARA DISPOSITIVOS MÓVEIS (CONTROLE POR TOQUE/DESLIZE CONTÍNUO)
+        // [CONTROLE DE TOQUE CELULAR] -> Altere "sensibilidade" se preferir arrastar menos o dedo
         let toqueXInicial = 0;
         let toqueYInicial = 0;
 
@@ -403,11 +385,10 @@
 
             let toqueXFinal = e.changedTouches[0].clientX;
             let toqueYFinal = e.changedTouches[0].clientY;
-
             let diffX = toqueXFinal - toqueXInicial;
             let diffY = toqueYFinal - toqueYInicial;
 
-            let sensibilidade = 30; 
+            let sensibilidade = 25; 
             let teclaSimulada = "";
 
             if (Math.abs(diffX) > Math.abs(diffY)) {
@@ -421,19 +402,15 @@
             }
 
             if (teclaSimulada) {
-                direcaoAtual = teclaSimulada; // Faz o casal disparar correndo sozinho para essa direção
+                direcaoAtual = teclaSimulada; 
                 executarPasso(direcaoAtual);
             }
         }, { passive: true });
 
-        // INTELIGÊNCIA ARTIFICIAL DO INIMIGO
         function moverInimigoAtivo() {
             let melhorMovimento = { x: inimigo.x, y: inimigo.y };
             let menorDistancia = Infinity;
-
-            const direcoes = [
-                {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}, {x: 0, y: 1}
-            ];
+            const direcoes = [{x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}, {x: 0, y: 1}];
 
             direcoes.forEach(dir => {
                 let testeX = inimigo.x + dir.x;
@@ -452,38 +429,31 @@
                     }
                 }
             });
-
             inimigo.x = melhorMovimento.x;
             inimigo.y = melhorMovimento.y;
         }
 
-        // CHECA COLISÕES DE ELEMENTOS (MILHOS E CASAS)
         function checarEventosTabuleiro() {
             let localAtual = mapa[casal.x][casal.y];
-
             if (localAtual === 'M') {
                 pontos += 10;
                 atualizarPlacar();
                 mapa[casal.x][casal.y] = '0'; 
             }
-
             if (['C1', 'C2', 'C3', 'C4'].includes(localAtual)) {
                 jogoPausado = true;
-                direcaoAtual = null; // Zera o movimento automático ao entrar em um ponto turístico
+                direcaoAtual = null; 
                 casaSendoVisitada = { x: casal.x, y: casal.y, codigo: localAtual };
-
                 pontos = pontos * 2;
                 atualizarPlacar();
-
                 abrirModalCultural(localAtual);
             }
         }
 
-        // AJUSTE: VERIFICA SE O INIMIGO ALCANÇOU O CASAL E APLICA PENALIDADE
         function checarColisaoInimigo() {
             if (casal.x === inimigo.x && casal.y === inimigo.y) {
                 tocarSomColisao();
-                direcaoAtual = null; // Para o movimento automático imediatamente
+                direcaoAtual = null; 
                 
                 let perda = Math.round(pontos * 0.3);
                 pontos = pontos - perda;
@@ -492,7 +462,6 @@
                 atualizarPlacar();
                 alert(`Opa, esbarrou no obstáculo! O casal perdeu o ritmo. Pena de -30% dos pontos (-${perda} pts). Voltando para o início!`);
                 
-                // Reseta as posições para o início seguro
                 casal = { x: 4, y: 4 };
                 inimigo = { x: 0, y: 3 };
                 return true;
@@ -500,13 +469,10 @@
             return false;
         }
 
-        // VERIFICA SE O JOGADOR JÁ VISITOU TODOS OS CANTOS DO MAPA
         function verificarFimDeJogo() {
             for (let l = 0; l < 9; l++) {
                 for (let c = 0; c < 9; c++) {
-                    if (['C1', 'C2', 'C3', 'C4'].includes(mapa[l][c])) {
-                        return false; 
-                    }
+                    if (['C1', 'C2', 'C3', 'C4'].includes(mapa[l][c])) return false; 
                 }
             }
             return true; 
@@ -518,7 +484,6 @@
 
         function abrirModalCultural(cantoCodigo) {
             let dados = infoCantos[cantoCodigo];
-
             document.getElementById('modal-titulo').innerText = dados.titulo;
             document.getElementById('modal-texto').innerText = dados.texto;
             
@@ -526,13 +491,10 @@
             botao.innerText = "Continuar Dançando! 🪗";
             botao.className = "";
             botao.setAttribute("onclick", "fecharModal()");
-
             document.getElementById('modal-info').style.display = 'flex';
 
             playerAudio.src = dados.som;
-            playerAudio.play().catch(erro => {
-                console.log("Áudio aguardando clique inicial.");
-            });
+            playerAudio.play().catch(erro => {});
         }
 
         function fecharModal() {
@@ -545,9 +507,8 @@
                 casaSendoVisitada = null;
             }
 
-            if (verificarFimDeJogo()) {
-                exibirTelaVitoria();
-            } else {
+            if (verificarFimDeJogo()) exibirTelaVitoria();
+            else {
                 jogoPausado = false;
                 desenharTabuleiro();
             }
@@ -556,7 +517,6 @@
         function exibirTelaVitoria() {
             jogoPausado = true;
             direcaoAtual = null;
-            
             document.getElementById('modal-titulo').innerText = "✨ ¡Viva! Você Zerou Aracaju! ✨";
             document.getElementById('modal-texto').innerHTML = `Muito obrigado por valorizar a nossa cultura junina!<br><br>Sua pontuação final foi de: <strong>${pontos} pontos</strong>.<br><br>Que tal expandir sua jornada pelo País do Forró? Prepare o tamanco, pois na próxima fase vamos conhecer os tradicionais festejos do interior do estado, começando pelo histórico <strong>Forró de Areia Branca</strong>!`;
             
@@ -564,13 +524,10 @@
             botao.innerText = "Partir para Areia Branca! 🚌";
             botao.className = "btn-proxima-fase";
             botao.setAttribute("onclick", "proximaFase()");
-
             document.getElementById('modal-info').style.display = 'flex';
 
             playerAudio.src = somVitoria;
-            playerAudio.play().catch(erro => {
-                console.log("Erro ao reproduzir o som de vitória.");
-            });
+            playerAudio.play().catch(erro => {});
         }
 
         function proximaFase() {
@@ -580,7 +537,6 @@
             location.reload(); 
         }
 
-        // Inicializa as funções do tabuleiro e o loop
         desenharTabuleiro();
         iniciarLoopMovimento();
     </script>
