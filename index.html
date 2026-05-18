@@ -234,6 +234,11 @@
         let jogoPausado = false;
         let casaSendoVisitada = null;  
 
+        // CONFIGURAÇÃO DO MOVIMENTO CONTÍNUO
+        let direcaoAtual = null; // Guarda para onde o casal está correndo sozinho
+        let loopMovimento = null;
+        const VELOCIDADE_JOGO = 220; // Tempo em milissegundos entre cada passo automático (menor = mais rápido)
+
         const tabuleiroElemento = document.getElementById('tabuleiro');
         const playerAudio = document.getElementById('player-forro');
 
@@ -279,7 +284,7 @@
                 oscilador.connect(ganho);
                 ganho.connect(audioCtx.destination);
 
-                oscilador.type = 'sawtooth'; // Onda dente de serra para som mais áspero de erro
+                oscilador.type = 'sawtooth'; 
                 oscilador.frequency.setValueAtTime(180, audioCtx.currentTime);
                 oscilador.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
 
@@ -324,47 +329,67 @@
             }
         }
 
-        // MONITORAMENTO DOS MOVIMENTOS DO JOGADOR (DESKTOP)
-        document.addEventListener('keydown', (e) => {
-            if (jogoPausado) return; 
+        // FUNÇÃO CENTRAL QUE EXECUTA UM PASSO DA JORNADA (Usada tanto por clique quanto pelo loop contínuo)
+        function executarPasso(direcao) {
+            if (jogoPausado) return false;
 
             let proxX = casal.x;
             let proxY = casal.y;
-            let moveu = false;
 
-            if (e.key === 'ArrowUp')   { proxX--; moveu = true; }
-            if (e.key === 'ArrowDown') { proxX++; moveu = true; }
-            if (e.key === 'ArrowLeft') { proxY--; moveu = true; }
-            if (e.key === 'ArrowRight'){ proxY++; moveu = true; }
+            if (direcao === 'ArrowUp')   proxX--;
+            if (direcao === 'ArrowDown') proxX++;
+            if (direcao === 'ArrowLeft') proxY--;
+            if (direcao === 'ArrowRight')proxY++;
 
-            if (moveu && proxX >= 0 && proxX < 9 && proxY >= 0 && proxY < 9) {
-                if (mapa[proxX][proxY] !== '1') {
-                    casal.x = proxX;
-                    casal.y = proxY;
-                    
-                    tocarTomMovimento();
-                    
-                    // AJUSTE: Primeira checagem (Se o casal andou direto para cima do fantasma)
-                    if (checarColisaoInimigo()) {
-                        desenharTabuleiro();
-                        return; // Para a execução do turno para dar tempo do jogador respirar
-                    }
-
-                    checarEventosTabuleiro();
-                    
-                    if (!jogoPausado) {
-                        moverInimigoAtivo();
-                        // Segunda checagem (Se o fantasma andou para cima do casal)
-                        checarColisaoInimigo();
-                    }
+            // Valida os limites do mapa e se não colide com parede
+            if (proxX >= 0 && proxX < 9 && proxY >= 0 && proxY < 9 && mapa[proxX][proxY] !== '1') {
+                casal.x = proxX;
+                casal.y = proxY;
+                
+                tocarTomMovimento();
+                
+                if (checarColisaoInimigo()) {
                     desenharTabuleiro();
+                    return false; 
                 }
+
+                checarEventosTabuleiro();
+                
+                if (!jogoPausado) {
+                    moverInimigoAtivo();
+                    checarColisaoInimigo();
+                }
+                desenharTabuleiro();
+                return true; // Retorna true se conseguiu se mover com sucesso
+            }
+            return false; // Retorna false se bateu em parede ou saiu do mapa
+        }
+
+        // LIGA O MOTOR AUTOMÁTICO DE PASSO CONTÍNUO
+        function iniciarLoopMovimento() {
+            if (loopMovimento) clearInterval(loopMovimento);
+            
+            loopMovimento = setInterval(() => {
+                if (direcaoAtual && !jogoPausado) {
+                    let moveu = executarPasso(direcaoAtual);
+                    // Se ele bateu numa parede, para de correr sozinho naquela direção
+                    if (!moveu) {
+                        direcaoAtual = null;
+                    }
+                }
+            }, VELOCIDADE_JOGO);
+        }
+
+        // MONITORAMENTO DOS MOVIMENTOS DO JOGADOR (DESKTOP)
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault(); // Evita a rolagem natural da página nas setas
+                direcaoAtual = e.key; // Atualiza a direção do movimento inercial
+                executarPasso(direcaoAtual);
             }
         });
 
-        // ==========================================================================
-        // ADICIONADO: ADAPTAÇÃO PARA DISPOSITIVOS MÓVEIS (CONTROLE POR TOQUE/DESLIZE)
-        // ==========================================================================
+        // ADAPTAÇÃO PARA DISPOSITIVOS MÓVEIS (CONTROLE POR TOQUE/DESLIZE CONTÍNUO)
         let toqueXInicial = 0;
         let toqueYInicial = 0;
 
@@ -382,7 +407,7 @@
             let diffX = toqueXFinal - toqueXInicial;
             let diffY = toqueYFinal - toqueYInicial;
 
-            let sensibilidade = 30; // Distância mínima (em pixels) para validar o arrastar
+            let sensibilidade = 30; 
             let teclaSimulada = "";
 
             if (Math.abs(diffX) > Math.abs(diffY)) {
@@ -396,11 +421,10 @@
             }
 
             if (teclaSimulada) {
-                let eventoSimulado = new KeyboardEvent('keydown', { key: teclaSimulada });
-                document.dispatchEvent(eventoSimulado);
+                direcaoAtual = teclaSimulada; // Faz o casal disparar correndo sozinho para essa direção
+                executarPasso(direcaoAtual);
             }
         }, { passive: true });
-        // ==========================================================================
 
         // INTELIGÊNCIA ARTIFICIAL DO INIMIGO
         function moverInimigoAtivo() {
@@ -445,6 +469,7 @@
 
             if (['C1', 'C2', 'C3', 'C4'].includes(localAtual)) {
                 jogoPausado = true;
+                direcaoAtual = null; // Zera o movimento automático ao entrar em um ponto turístico
                 casaSendoVisitada = { x: casal.x, y: casal.y, codigo: localAtual };
 
                 pontos = pontos * 2;
@@ -458,8 +483,8 @@
         function checarColisaoInimigo() {
             if (casal.x === inimigo.x && casal.y === inimigo.y) {
                 tocarSomColisao();
+                direcaoAtual = null; // Para o movimento automático imediatamente
                 
-                // Diminui 30% dos pontos de forma proporcional e arredonda para número inteiro
                 let perda = Math.round(pontos * 0.3);
                 pontos = pontos - perda;
                 if (pontos < 0) pontos = 0;
@@ -530,6 +555,7 @@
 
         function exibirTelaVitoria() {
             jogoPausado = true;
+            direcaoAtual = null;
             
             document.getElementById('modal-titulo').innerText = "✨ ¡Viva! Você Zerou Aracaju! ✨";
             document.getElementById('modal-texto').innerHTML = `Muito obrigado por valorizar a nossa cultura junina!<br><br>Sua pontuação final foi de: <strong>${pontos} pontos</strong>.<br><br>Que tal expandir sua jornada pelo País do Forró? Prepare o tamanco, pois na próxima fase vamos conhecer os tradicionais festejos do interior do estado, começando pelo histórico <strong>Forró de Areia Branca</strong>!`;
@@ -554,7 +580,9 @@
             location.reload(); 
         }
 
+        // Inicializa as funções do tabuleiro e o loop
         desenharTabuleiro();
+        iniciarLoopMovimento();
     </script>
 </body>
 </html>
