@@ -58,6 +58,7 @@
             border: 4px solid #ff9f43;
             border-radius: 10px;
             box-shadow: 0px 0px 25px rgba(255, 159, 67, 0.6);
+            touch-action: none; /* Impede a tela do celular de rolar ao arrastar o dedo no jogo */
         }
 
         /* Estilo de cada quadrado/bloco do jogo */
@@ -78,7 +79,7 @@
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
 
-        /* Cantos especiais (Pontos Turísticos ativos) */
+        /* Cantos especiais (Pontos Turísticos activos) */
         .ponto-turistico {
             background-color: #22a6b3 !important;
             border: 2px solid #7ed6df;
@@ -323,7 +324,7 @@
             }
         }
 
-        // MONITORAMENTO DOS MOVIMENTOS DO JOGADOR
+        // MONITORAMENTO DOS MOVIMENTOS DO JOGADOR (DESKTOP)
         document.addEventListener('keydown', (e) => {
             if (jogoPausado) return; 
 
@@ -360,6 +361,46 @@
                 }
             }
         });
+
+        // ==========================================================================
+        // ADICIONADO: ADAPTAÇÃO PARA DISPOSITIVOS MÓVEIS (CONTROLE POR TOQUE/DESLIZE)
+        // ==========================================================================
+        let toqueXInicial = 0;
+        let toqueYInicial = 0;
+
+        tabuleiroElemento.addEventListener('touchstart', (e) => {
+            toqueXInicial = e.touches[0].clientX;
+            toqueYInicial = e.touches[0].clientY;
+        }, { passive: true });
+
+        tabuleiroElemento.addEventListener('touchend', (e) => {
+            if (jogoPausado) return;
+
+            let toqueXFinal = e.changedTouches[0].clientX;
+            let toqueYFinal = e.changedTouches[0].clientY;
+
+            let diffX = toqueXFinal - toqueXInicial;
+            let diffY = toqueYFinal - toqueYInicial;
+
+            let sensibilidade = 30; // Distância mínima (em pixels) para validar o arrastar
+            let teclaSimulada = "";
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > sensibilidade) {
+                    teclaSimulada = diffX > 0 ? 'ArrowRight' : 'ArrowLeft';
+                }
+            } else {
+                if (Math.abs(diffY) > sensibilidade) {
+                    teclaSimulada = diffY > 0 ? 'ArrowDown' : 'ArrowUp';
+                }
+            }
+
+            if (teclaSimulada) {
+                let eventoSimulado = new KeyboardEvent('keydown', { key: teclaSimulada });
+                document.dispatchEvent(eventoSimulado);
+            }
+        }, { passive: true });
+        // ==========================================================================
 
         // INTELIGÊNCIA ARTIFICIAL DO INIMIGO
         function moverInimigoAtivo() {
