@@ -2,11 +2,11 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Come-Come do Forró - Aracaju 2026</title>
     <style>
         /* ==========================================================================
-           ESTILOS DO JOGO (CSS)
+           ESTILOS DO JOGO (CSS) - RESTAURADOS E RESPONSIVOS
            ========================================================================== */
         body {
             background-color: #2c1a04; /* Fundo escuro remetendo à noite de São João */
@@ -22,12 +22,14 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
+            overflow: hidden;
         }
 
         h1 {
             color: #ff9f43;
-            text-shadow: 2px 2px #ee5253;
-            margin: 5px 0;
+            text-shadow: 3px 3px #ee5253;
+            margin-bottom: 5px;
+            margin-top: 5px;
             font-size: 1.8rem;
             text-align: center;
         }
@@ -35,13 +37,13 @@
         h2 {
             color: #feca57;
             margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 1rem;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
             text-align: center;
         }
 
         #placar {
-            font-size: 20px;
+            font-size: 24px;
             margin-bottom: 15px;
             font-weight: bold;
             color: #feca57;
@@ -51,72 +53,31 @@
             border: 1px solid #ff9f43;
         }
 
-        /* Container do Labirinto Responsivo */
-        #tabuleiro {
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            grid-template-rows: repeat(9, 1fr);
-            gap: 2px;
-            background-color: #1e1102;
-            padding: 8px;
-            border: 4px solid #ff9f43;
-            border-radius: 10px;
-            box-shadow: 0px 0px 25px rgba(255, 159, 67, 0.6);
-            touch-action: none; /* Impede o scroll da tela do celular ao jogar */
-            
-            /* Ajuste de tamanho dinâmico para telas pequenas e grandes */
+        /* Container do jogo usando Canvas para movimento suave pixel por pixel */
+        #canvas-container {
+            position: relative;
             width: 90vw;
             height: 90vw;
             max-width: 450px;
             max-height: 450px;
+            border: 4px solid #ff9f43;
+            border-radius: 10px;
+            box-shadow: 0px 0px 25px rgba(255, 159, 67, 0.6);
+            background-color: #1e1102;
+            touch-action: none; /* Impede a tela do celular de rolar ao jogar */
         }
 
-        /* Estilo de cada quadrado/bloco do jogo */
-        .celula {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 5.5vw; /* Tamanho do emoji baseado na tela */
-            background-color: #3d2306;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-        /* Trava o tamanho máximo dos emojis em telas grandes */
-        @media (min-width: 500px) {
-            .celula {
-                font-size: 24px;
-            }
-        }
-
-        /* Paredes do labirinto */
-        .parede {
-            background-color: #d63031; 
-            border: 1px solid #ff7675;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-        }
-
-        /* Cantos especiais (Pontos Turísticos activos) */
-        .ponto-turistico {
-            background-color: #22a6b3 !important;
-            border: 2px solid #7ed6df;
-            animation: pulsar 1.5s infinite alternate;
-        }
-
-        @keyframes pulsar {
-            from { transform: scale(0.95); box-shadow: 0 0 5px #7ed6df; }
-            to { transform: scale(1.05); box-shadow: 0 0 15px #22a6b3; }
-        }
-
-        .chao-limpo {
-            background-color: #271603;
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
         }
 
         /* ==========================================================================
-           ESTILO DO MODAL RESPONSIVO
+           ESTILO DO MODAL (JANELA POP-UP HISTÓRICA E VITÓRIA)
            ========================================================================== */
         .modal {
-            display: none; 
+            display: none; /* Oculto por padrão */
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.85);
@@ -130,10 +91,10 @@
         .modal-conteudo {
             background-color: #ffffff;
             color: #333333;
-            padding: 20px;
+            padding: 30px;
             border-radius: 15px;
             width: 100%;
-            max-width: 380px;
+            max-width: 400px;
             text-align: center;
             border: 6px solid #ff9f43;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
@@ -142,12 +103,12 @@
         .modal-conteudo h2 {
             color: #ee5253;
             margin-top: 0;
-            font-size: 22px;
+            font-size: 28px;
         }
 
         .modal-conteudo p {
-            font-size: 15px;
-            line-height: 1.5;
+            font-size: 16px;
+            line-height: 1.6;
             color: #444;
         }
 
@@ -156,12 +117,13 @@
             color: white;
             border: none;
             padding: 12px 25px;
-            font-size: 16px;
+            font-size: 18px;
             border-radius: 25px;
             cursor: pointer;
-            margin-top: 15px;
+            margin-top: 20px;
             font-weight: bold;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.2s;
             width: 100%;
         }
 
@@ -169,46 +131,61 @@
             background-color: #0ed29d;
         }
 
+        /* Estilo específico para o botão de próxima fase */
         .btn-proxima-fase {
             background-color: #ff9f43 !important;
             color: #2c1a04 !important;
+            font-weight: bold;
+        }
+        .btn-proxima-fase:hover {
+            background-color: #ffb167 !important;
         }
     </style>
 </head>
 <body>
 
-    <h1> Sergipano o País do Forró </h1>
-    <h2> Come-Come do Forró </h2>
+    <h1>🌽 Sergipe o País do Forró 🌽</h1>
+    <h2>🌽 Come-Come do Forró 🌽</h2>
     <div id="placar">Pontos: <span id="pontos-valor">0</span></div>
 
-    <!-- Grade do Labirinto -->
-    <div id="tabuleiro"></div>
+    <div id="canvas-container">
+        <canvas id="jogoCanvas" width="450" height="450"></canvas>
+    </div>
 
-    <!-- Janela de Informações Culturais / Fim de Jogo -->
+    <!-- Janela de Informações Culturais / Fim de Jogo (Modal Restaurado) -->
     <div id="modal-info" class="modal">
         <div class="modal-conteudo">
             <h2 id="modal-titulo">Atração Junina</h2>
             <p id="modal-texto">História...</p>
             <div id="modal-footer">
-                <button id="modal-botao" onclick="fecharModal()">Continuar Dançando! </button>
+                <button id="modal-botao" onclick="fecharModal()">Continuar Dançando! 🪗</button>
             </div>
         </div>
     </div>
 
+    <!-- Elemento de áudio HTML5 invisível -->
     <audio id="player-forro" loop></audio>
 
     <script>
         /* ==========================================================================
-           LÓGICA DO JOGO (JAVASCRIPT)
+            LÓGICA DO JOGO (JAVASCRIPT)
            ========================================================================== */
+        const canvas = document.getElementById('jogoCanvas');
+        const ctx = canvas.getContext('2d');
 
+        // Dimensões lógicas internas para manter a proporção matemática
+        const TAM_LOGICO = 450;
+        const QTD_CASAS = 9;
+        const TAM_CASA = TAM_LOGICO / QTD_CASAS; // 50px por casa
+
+        // Mapa original do Labirinto
         const mapa = [
             ['C1', 'M', 'M', '1', 'M', 'M', 'M', 'M', 'C2'],
             ['M',  '1', 'M', '1', 'M', '1', '1', 'M', 'M'],
             ['M',  '1', 'M', 'M', 'M', 'M', '1', 'M', '1'],
-            ['M',  '1', '1', '1', '1', 'M', '1', 'M', '1'],
+            ['M',  '1', '1', '1', '1', 'M', '1', 'M', 'M'],
             ['M',  'M', 'M', 'M', 'M', 'M', 'M', 'M', 'M'],
-            ['1',  '1', 'M', '1', '1', '1', '1', '1', 'M'],
+            ['1',  '1', 'M', 'M', '1', '1', '1', '1', 'M'],
             ['1',  'M', 'M', 'M', 'M', 'M', 'M', '1', 'M'],
             ['M',  'M', '1', '1', 'M', '1', 'M', 'M', 'M'],
             ['C3', 'M', 'M', 'M', 'M', '1', 'M', 'M', 'C4']
@@ -239,234 +216,334 @@
 
         const somVitoria = "sons/vitoria.mp3";
 
-        let casal = { x: 4, y: 4 };    
-        let inimigo = { x: 0, y: 3 };  
+        // Configuração de posições reais baseadas em pixels para suavidade completa
+        let casal = { x: 4 * TAM_CASA + 25, y: 4 * TAM_CASA + 25, raio: 18, velocidade: 3.2 };
+        
+        // Inimigo configurado com velocidade perfeitamente constante e direções de patrulha fixa
+        let inimigo = { 
+            x: 0 * TAM_CASA + 25, 
+            y: 3 * TAM_CASA + 25, 
+            raio: 16, 
+            velocidade: 1.8, 
+            dirX: 1, 
+            dirY: 0,
+            tempoUltimoTeletransporte: Date.now() 
+        };
+
         let pontos = 0;
         let jogoPausado = false;
         let casaSendoVisitada = null;  
+        let teclasPressionadas = {};
+        let toqueDirecao = { x: 0, y: 0 }; 
 
-        // [CONTROLE DE MOVIMENTO] -> Altere VELOCIDADE_JOGO para acelerar/desacelerar o casal
-        let direcaoAtual = null; 
-        let loopMovimento = null;
-        const VELOCIDADE_JOGO = 220; 
-
-        const tabuleiroElemento = document.getElementById('tabuleiro');
-        const playerAudio = document.getElementById('player-forro');
+        // Gerador de Som Retrô Sintetizado
         let audioCtx = null;
-
         function tocarTomMovimento() {
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
 
-                let oscilador = audioCtx.createOscillator();
-                let ganho = audioCtx.createGain();
-                oscilador.connect(ganho);
-                ganho.connect(audioCtx.destination);
-
-                oscilador.type = 'square'; 
-                oscilador.frequency.setValueAtTime(440, audioCtx.currentTime); 
+                let oscilador = audioCtx.createOscillator(), ganho = audioCtx.createGain();
+                oscilador.connect(ganho); ganho.connect(audioCtx.destination);
+                oscilador.type = 'square'; oscilador.frequency.setValueAtTime(440, audioCtx.currentTime); 
                 oscilador.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.12);
-                ganho.gain.setValueAtTime(0.45, audioCtx.currentTime); 
-                ganho.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
-
-                oscilador.start();
-                oscilador.stop(audioCtx.currentTime + 0.12);
+                ganho.gain.setValueAtTime(0.2, audioCtx.currentTime); ganho.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+                oscilador.start(); oscilador.stop(audioCtx.currentTime + 0.12);
             } catch (e) {}
         }
 
         function tocarSomColisao() {
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                let oscilador = audioCtx.createOscillator();
-                let ganho = audioCtx.createGain();
-                oscilador.connect(ganho);
-                ganho.connect(audioCtx.destination);
-
-                oscilador.type = 'sawtooth'; 
-                oscilador.frequency.setValueAtTime(180, audioCtx.currentTime);
+                let oscilador = audioCtx.createOscillator(), ganho = audioCtx.createGain();
+                oscilador.connect(ganho); ganho.connect(audioCtx.destination);
+                oscilador.type = 'sawtooth'; oscilador.frequency.setValueAtTime(180, audioCtx.currentTime);
                 oscilador.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
-                ganho.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                ganho.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-
-                oscilador.start();
-                oscilador.stop(audioCtx.currentTime + 0.3);
+                ganho.gain.setValueAtTime(0.4, audioCtx.currentTime); ganho.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                oscilador.start(); oscilador.stop(audioCtx.currentTime + 0.3);
             } catch(e) {}
         }
 
-        function desenharTabuleiro() {
-            tabuleiroElemento.innerHTML = ''; 
-            for (let l = 0; l < 9; l++) {
-                for (let c = 0; c < 9; c++) {
-                    const celula = document.createElement('div');
-                    celula.classList.add('celula');
+        // Função Matemática de Colisão: Círculo contra os Quadrados das paredes
+        function colideComParede(X, Y, raio) {
+            for (let l = 0; l < QTD_CASAS; l++) {
+                for (let c = 0; c < QTD_CASAS; c++) {
+                    if (mapa[l][c] === '1') {
+                        let pX = c * TAM_CASA;
+                        let pY = l * TAM_CASA;
 
-                    if (casal.x === l && casal.y === c) {
-                        celula.innerHTML = '👩‍❤️‍👨'; 
-                    } 
-                    else if (inimigo.x === l && inimigo.y === c) {
-                        celula.innerHTML = '👻';
-                    } 
-                    else {
-                        let tipo = mapa[l][c];
-                        if (tipo === '1') celula.classList.add('parede');
-                        else if (tipo === 'M') celula.innerHTML = '🌽';
-                        else if (['C1', 'C2', 'C3', 'C4'].includes(tipo)) {
-                            celula.classList.add('ponto-turistico');
-                            celula.innerHTML = '🎪'; 
-                        } else celula.classList.add('chao-limpo');
+                        let maisProximoX = Math.max(pX, Math.min(X, pX + TAM_CASA));
+                        let maisProximoY = Math.max(pY, Math.min(Y, pY + TAM_CASA));
+
+                        let distXx = X - maisProximoX;
+                        let distYy = Y - maisProximoY;
+                        let distancia = Math.sqrt((distXx * distXx) + (distYy * distYy));
+
+                        if (distancia < raio) return true;
                     }
-                    tabuleiroElemento.appendChild(celula);
                 }
             }
+            return false;
         }
 
-        function executarPasso(direcao) {
-            if (jogoPausado) return false;
-
-            let proxX = casal.x;
-            let proxY = casal.y;
-
-            if (direcao === 'ArrowUp')   proxX--;
-            if (direcao === 'ArrowDown') proxX++;
-            if (direcao === 'ArrowLeft') proxY--;
-            if (direcao === 'ArrowRight')proxY++;
-
-            if (proxX >= 0 && proxX < 9 && proxY >= 0 && proxY < 9 && mapa[proxX][proxY] !== '1') {
-                casal.x = proxX;
-                casal.y = proxY;
-                tocarTomMovimento();
+        // Sorteia uma nova posição válida (pista livre) para o teletransporte do fantasma
+        function teletransportarInimigo() {
+            let posicoesValidas = [];
+            for (let l = 0; l < QTD_CASAS; l++) {
+                for (let c = 0; c < QTD_CASAS; c++) {
+                    if (mapa[l][c] !== '1') {
+                        posicoesValidas.push({ l: l, c: c });
+                    }
+                }
+            }
+            if (posicoesValidas.length > 0) {
+                let sorteio = posicoesValidas[Math.floor(Math.random() * posicoesValidas.length)];
+                inimigo.x = sorteio.c * TAM_CASA + 25;
+                inimigo.y = sorteio.l * TAM_CASA + 25;
                 
-                if (checarColisaoInimigo()) {
-                    desenharTabuleiro();
-                    return false; 
-                }
-                checarEventosTabuleiro();
-                
-                if (!jogoPausado) {
-                    moverInimigoAtivo();
-                    checarColisaoInimigo();
-                }
-                desenharTabuleiro();
-                return true; 
+                // Redireciona para um sentido aleatório em linha reta assim que surge
+                let direcoes = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}];
+                let dirSorteada = direcoes[Math.floor(Math.random() * direcoes.length)];
+                inimigo.dirX = dirSorteada.x;
+                inimigo.dirY = dirSorteada.y;
             }
-            return false; 
         }
 
-        function iniciarLoopMovimento() {
-            if (loopMovimento) clearInterval(loopMovimento);
-            loopMovimento = setInterval(() => {
-                if (direcaoAtual && !jogoPausado) {
-                    let moveu = executarPasso(direcaoAtual);
-                    if (!moveu) direcaoAtual = null; // Para o movimento se bater no muro
-                }
-            }, VELOCIDADE_JOGO);
-        }
+        // Eventos do Teclado (Ativa enquanto segura, zera quando solta)
+        window.addEventListener('keydown', e => { teclasPressionadas[e.key] = true; });
+        window.addEventListener('keyup', e => { teclasPressionadas[e.key] = false; });
 
-        document.addEventListener('keydown', (e) => {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                e.preventDefault(); 
-                direcaoAtual = e.key; 
-                executarPasso(direcaoAtual);
+        // Eventos de Deslize Dinâmico (Celular)
+        let inicioToque = null;
+        canvas.addEventListener('touchstart', e => {
+            let rect = canvas.getBoundingClientRect();
+            inicioToque = {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
+            };
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', e => {
+            if (!inicioToque || jogoPausado) return;
+            let rect = canvas.getBoundingClientRect();
+            let atualToque = {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
+            };
+
+            let dx = atualToque.x - inicioToque.x;
+            let dy = atualToque.y - inicioToque.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+
+            if (dist > 12) { // Margem de sensibilidade
+                toqueDirecao.x = dx / dist;
+                toqueDirecao.y = dy / dist;
             }
+        }, { passive: true });
+
+        canvas.addEventListener('touchend', () => {
+            toqueDirecao = { x: 0, y: 0 }; // Para de andar ao retirar o dedo da tela
+            inicioToque = null;
         });
 
-        // [CONTROLE DE TOQUE CELULAR] -> Altere "sensibilidade" se preferir arrastar menos o dedo
-        let toqueXInicial = 0;
-        let toqueYInicial = 0;
-
-        tabuleiroElemento.addEventListener('touchstart', (e) => {
-            toqueXInicial = e.touches[0].clientX;
-            toqueYInicial = e.touches[0].clientY;
-        }, { passive: true });
-
-        tabuleiroElemento.addEventListener('touchend', (e) => {
+        // Loop de Atualização Mecânica (Engine 60fps)
+        function atualizar() {
             if (jogoPausado) return;
 
-            let toqueXFinal = e.changedTouches[0].clientX;
-            let toqueYFinal = e.changedTouches[0].clientY;
-            let diffX = toqueXFinal - toqueXInicial;
-            let diffY = toqueYFinal - toqueYInicial;
+            let dx = 0;
+            let dy = 0;
 
-            let sensibilidade = 15; 
-            let teclaSimulada = "";
+            // Leitura das teclas pressionadas
+            if (teclasPressionadas['ArrowUp'] || teclasPressionadas['w']) dy = -casal.velocidade;
+            if (teclasPressionadas['ArrowDown'] || teclasPressionadas['s']) dy = casal.velocidade;
+            if (teclasPressionadas['ArrowLeft'] || teclasPressionadas['a']) dx = -casal.velocidade;
+            if (teclasPressionadas['ArrowRight'] || teclasPressionadas['d']) dx = casal.velocidade;
 
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (Math.abs(diffX) > sensibilidade) {
-                    teclaSimulada = diffX > 0 ? 'ArrowRight' : 'ArrowLeft';
+            // Leitura do toque móvel
+            if (toqueDirecao.x !== 0 || toqueDirecao.y !== 0) {
+                dx = toqueDirecao.x * casal.velocidade;
+                dy = toqueDirecao.y * casal.velocidade;
+            }
+
+            // Move deslizando pelas quinas horizontais
+            if (dx !== 0) {
+                let proxX = casal.x + dx;
+                if (proxX - casal.raio > 0 && proxX + casal.raio < TAM_LOGICO && !colideComParede(proxX, casal.y, casal.raio)) {
+                    casal.x = proxX;
+                    if(Math.random() < 0.08) tocarTomMovimento();
                 }
+            }
+            // Move deslizando pelas quinas verticais
+            if (dy !== 0) {
+                let proxY = casal.y + dy;
+                if (proxY - casal.raio > 0 && proxY + casal.raio < TAM_LOGICO && !colideComParede(casal.x, proxY, casal.raio)) {
+                    casal.y = proxY;
+                    if(Math.random() < 0.08) tocarTomMovimento();
+                }
+            }
+
+            // Mapeia em tempo real a casinha onde o casal está centralizado
+            let casaC = Math.floor(casal.x / TAM_CASA);
+            let casaL = Math.floor(casal.y / TAM_CASA);
+
+            if(casaC >= 0 && casaC < 9 && casaL >= 0 && casaL < 9) {
+                let item = mapa[casaL][casaC];
+                if (item === 'M') {
+                    pontos += 10;
+                    document.getElementById('pontos-valor').innerText = pontos;
+                    mapa[casaL][casaC] = '0';
+                } else if (['C1', 'C2', 'C3', 'C4'].includes(item)) {
+                    jogoPausado = true;
+                    toqueDirecao = { x: 0, y: 0 };
+                    casaSendoVisitada = { x: casaL, y: casaC, codigo: item };
+                    pontos = pontos * 2;
+                    document.getElementById('pontos-valor').innerText = pontos;
+                    abrirModalCultural(item);
+                }
+            }
+
+            // ==========================================================================
+            // NOVA LÓGICA DO INIMIGO: PATRULHA FIXA + TELETRANSPORTE A CADA 3 SEGUNDOS
+            // ==========================================================================
+            // Verifica se passaram 3000ms (3 segundos) para sumir e reaparecer
+            if (Date.now() - inimigo.tempoUltimoTeletransporte > 3000) {
+                teletransportarInimigo();
+                inimigo.tempoUltimoTeletransporte = Date.now();
+            }
+
+            // Avanço constante na direção atual definida
+            let proxInimigoX = inimigo.x + (inimigo.dirX * inimigo.velocidade);
+            let proxInimigoY = inimigo.y + (inimigo.dirY * inimigo.velocidade);
+
+            // Verifica colisão com os limites físicos e paredes
+            let bateuParedeX = colideComParede(proxInimigoX, inimigo.y, inimigo.raio) || (proxInimigoX - inimigo.raio <= 0) || (proxInimigoX + inimigo.raio >= TAM_LOGICO);
+            let bateuParedeY = colideComParede(inimigo.x, proxInimigoY, inimigo.raio) || (proxInimigoY - inimigo.raio <= 0) || (proxInimigoY + inimigo.raio >= TAM_LOGICO);
+
+            if (!bateuParedeX && inimigo.dirX !== 0) {
+                inimigo.x = proxInimigoX;
+            } else if (!bateuParedeY && inimigo.dirY !== 0) {
+                inimigo.y = proxInimigoY;
             } else {
-                if (Math.abs(diffY) > sensibilidade) {
-                    teclaSimulada = diffY > 0 ? 'ArrowDown' : 'ArrowUp';
-                }
+                // Se encontrar um bloqueio, rotaciona aleatoriamente para outra direção em linha reta
+                let direcoes = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}];
+                let dirSorteada = direcoes[Math.floor(Math.random() * direcoes.length)];
+                inimigo.dirX = dirSorteada.x;
+                inimigo.dirY = dirSorteada.y;
             }
+            // ==========================================================================
 
-            if (teclaSimulada) {
-                direcaoAtual = teclaSimulada; 
-                executarPasso(direcaoAtual);
+            // Colisão Física entre Círculos (Casal vs Fantasma)
+            let distInimigo = Math.sqrt(Math.pow(casal.x - inimigo.x, 2) + Math.pow(casal.y - inimigo.y, 2));
+            if (distInimigo < (casal.raio + inimigo.raio)) {
+                tocarSomColisao();
+                let perda = Math.round(pontos * 0.3);
+                pontos = Math.max(0, pontos - perda);
+                document.getElementById('pontos-valor').innerText = pontos;
+                
+                alert(`Opa, esbarrou no obstáculo! O casal perdeu o ritmo. Pena de -30% dos pontos (-${perda} pts). Voltando para o início!`);
+                
+                casal.x = 4 * TAM_CASA + 25; casal.y = 4 * TAM_CASA + 25;
+                teletransportarInimigo(); // Spawna o inimigo em local novo ao reiniciar
+                inimigo.tempoUltimoTeletransporte = Date.now();
+                toqueDirecao = { x: 0, y: 0 };
+                teclasPressionadas = {};
             }
-        }, { passive: true });
+        }
 
-        function moverInimigoAtivo() {
-            let melhorMovimento = { x: inimigo.x, y: inimigo.y };
-            let menorDistancia = Infinity;
-            const direcoes = [{x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: -1}, {x: 0, y: 1}];
+        // Renderização dos Gráficos no Canvas
+        let tempoPulsar = 0;
+        function desenhar() {
+            ctx.clearRect(0, 0, TAM_LOGICO, TAM_LOGICO);
+            tempoPulsar += 0.05;
 
-            direcoes.forEach(dir => {
-                let testeX = inimigo.x + dir.x;
-                let testeY = inimigo.y + dir.y;
+            for (let l = 0; l < QTD_CASAS; l++) {
+                for (let c = 0; c < QTD_CASAS; c++) {
+                    let tipo = mapa[l][c];
+                    let x = c * TAM_CASA;
+                    let y = l * TAM_CASA;
 
-                if (testeX >= 0 && testeX < 9 && testeY >= 0 && testeY < 9) {
-                    if (mapa[testeX][testeY] !== '1') {
-                        let dx = testeX - casal.x;
-                        let dy = testeY - casal.y;
-                        let distancia = Math.sqrt(dx * dx + dy * dy);
+                    if (tipo === '1') {
+                        ctx.fillStyle = '#d63031';
+                        ctx.fillRect(x, y, TAM_CASA, TAM_CASA);
+                        ctx.strokeStyle = '#ff7675';
+                        ctx.strokeRect(x, y, TAM_CASA, TAM_CASA);
+                    } else {
+                        ctx.fillStyle = '#3d2306';
+                        ctx.fillRect(x, y, TAM_CASA, TAM_CASA);
 
-                        if (distancia < menorDistancia) {
-                            menorDistancia = distancia;
-                            melhorMovimento = { x: testeX, y: testeY };
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        
+                        if (tipo === 'M') {
+                            ctx.font = '20px Arial';
+                            ctx.fillText('🌽', x + 25, y + 25);
+                        } else if (['C1', 'C2', 'C3', 'C4'].includes(tipo)) {
+                            // Efeito pulsante visual nas atrações
+                            let escalaPulse = 2 + Math.sin(tempoPulsar) * 2;
+                            ctx.fillStyle = '#22a6b3';
+                            ctx.fillRect(x + escalaPulse, y + escalaPulse, TAM_CASA - (escalaPulse*2), TAM_CASA - (escalaPulse*2));
+                            ctx.font = '22px Arial';
+                            ctx.fillText('🎪', x + 25, y + 25);
                         }
                     }
                 }
-            });
-            inimigo.x = melhorMovimento.x;
-            inimigo.y = melhorMovimento.y;
-        }
-
-        function checarEventosTabuleiro() {
-            let localAtual = mapa[casal.x][casal.y];
-            if (localAtual === 'M') {
-                pontos += 10;
-                atualizarPlacar();
-                mapa[casal.x][casal.y] = '0'; 
             }
-            if (['C1', 'C2', 'C3', 'C4'].includes(localAtual)) {
-                jogoPausado = true;
-                direcaoAtual = null; 
-                casaSendoVisitada = { x: casal.x, y: casal.y, codigo: localAtual };
-                pontos = pontos * 2;
-                atualizarPlacar();
-                abrirModalCultural(localAtual);
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Desenha o Jogador e o Obstáculo
+            ctx.font = '26px Arial';
+            ctx.fillText('👩‍❤️‍👨', casal.x, casal.y);
+            
+            // Efeito visual sutil: Se faltar menos de 300ms para sumir, pisca o fantasma
+            let tempoRestante = 3000 - (Date.now() - inimigo.tempoUltimoTeletransporte);
+            if (tempoRestante > 300 || Math.floor(Date.now() / 70) % 2 === 0) {
+                ctx.fillText('👻', inimigo.x, inimigo.y);
             }
         }
 
-        function checarColisaoInimigo() {
-            if (casal.x === inimigo.x && casal.y === inimigo.y) {
-                tocarSomColisao();
-                direcaoAtual = null; 
-                
-                let perda = Math.round(pontos * 0.3);
-                pontos = pontos - perda;
-                if (pontos < 0) pontos = 0;
-                
-                atualizarPlacar();
-                alert(`Opa, esbarrou no obstáculo! O casal perdeu o ritmo. Pena de -30% dos pontos (-${perda} pts). Voltando para o início!`);
-                
-                casal = { x: 4, y: 4 };
-                inimigo = { x: 0, y: 3 };
-                return true;
+        // Loop Principal do Game Engine
+        function loop() {
+            atualizar();
+            desenhar();
+            requestAnimationFrame(loop);
+        }
+
+        // Controle dos Modais Culturais
+        function abrirModalCultural(cantoCodigo) {
+            let dados = infoCantos[cantoCodigo];
+            document.getElementById('modal-titulo').innerText = dados.titulo;
+            document.getElementById('modal-texto').innerText = dados.texto;
+            
+            const botao = document.getElementById('modal-botao');
+            botao.innerText = "Continuar Dançando! 🪗";
+            botao.className = "";
+            botao.setAttribute("onclick", "fecharModal()");
+            
+            document.getElementById('modal-info').style.display = 'flex';
+
+            let player = document.getElementById('player-forro');
+            player.src = dados.som;
+            player.play().catch(()=>{});
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-info').style.display = 'none';
+            document.getElementById('player-forro').pause();
+
+            if (casaSendoVisitada) {
+                mapa[casaSendoVisitada.x][casaSendoVisitada.y] = '0';
+                casaSendoVisitada = null;
             }
-            return false;
+
+            if (verificarFimDeJogo()) {
+                exibirTelaVitoria();
+            } else {
+                jogoPausado = false;
+                // Reseta o tempo de teletransporte para evitar que ele mude logo após despausar o jogo
+                inimigo.tempoUltimoTeletransporte = Date.now();
+            }
         }
 
         function verificarFimDeJogo() {
@@ -478,45 +555,10 @@
             return true; 
         }
 
-        function atualizarPlacar() {
-            document.getElementById('pontos-valor').innerText = pontos;
-        }
-
-        function abrirModalCultural(cantoCodigo) {
-            let dados = infoCantos[cantoCodigo];
-            document.getElementById('modal-titulo').innerText = dados.titulo;
-            document.getElementById('modal-texto').innerText = dados.texto;
-            
-            const botao = document.getElementById('modal-botao');
-            botao.innerText = "Continuar Dançando! 🪗";
-            botao.className = "";
-            botao.setAttribute("onclick", "fecharModal()");
-            document.getElementById('modal-info').style.display = 'flex';
-
-            playerAudio.src = dados.som;
-            playerAudio.play().catch(erro => {});
-        }
-
-        function fecharModal() {
-            document.getElementById('modal-info').style.display = 'none';
-            playerAudio.pause();
-            playerAudio.currentTime = 0; 
-
-            if (casaSendoVisitada) {
-                mapa[casaSendoVisitada.x][casaSendoVisitada.y] = '0';
-                casaSendoVisitada = null;
-            }
-
-            if (verificarFimDeJogo()) exibirTelaVitoria();
-            else {
-                jogoPausado = false;
-                desenharTabuleiro();
-            }
-        }
-
+        // TELA DE VITÓRIA HISTÓRICA RESTAURADA INTEGRALMENTE
         function exibirTelaVitoria() {
             jogoPausado = true;
-            direcaoAtual = null;
+            
             document.getElementById('modal-titulo').innerText = "✨ ¡Viva! Você Zerou Aracaju! ✨";
             document.getElementById('modal-texto').innerHTML = `Muito obrigado por valorizar a nossa cultura junina!<br><br>Sua pontuação final foi de: <strong>${pontos} pontos</strong>.<br><br>Que tal expandir sua jornada pelo País do Forró? Prepare o tamanco, pois na próxima fase vamos conhecer os tradicionais festejos do interior do estado, começando pelo histórico <strong>Forró de Areia Branca</strong>!`;
             
@@ -524,21 +566,22 @@
             botao.innerText = "Partir para Areia Branca! 🚌";
             botao.className = "btn-proxima-fase";
             botao.setAttribute("onclick", "proximaFase()");
+
             document.getElementById('modal-info').style.display = 'flex';
 
-            playerAudio.src = somVitoria;
-            playerAudio.play().catch(erro => {});
+            let player = document.getElementById('player-forro');
+            player.src = somVitoria;
+            player.play().catch(()=>{});
         }
 
         function proximaFase() {
-            playerAudio.pause();
-            playerAudio.currentTime = 0;
+            document.getElementById('player-forro').pause();
             alert("Carregando o circuito turístico de Areia Branca... Prepare-se para novos desafios e mais forró!");
             location.reload(); 
         }
 
-        desenharTabuleiro();
-        iniciarLoopMovimento();
+        // Inicia a execução contínua
+        requestAnimationFrame(loop);
     </script>
 </body>
 </html>
